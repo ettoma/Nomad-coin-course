@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/ettoretoma/Nomad-coin-course/person"
+)
 
 func main() {
-	fmt.Println("ettore")
+	ettore := person.Person{}
+	ettore.SetDetails("Ettore", 32)
+
+	fmt.Println(ettore)
+
 }
