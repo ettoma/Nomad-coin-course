@@ -1,49 +1,37 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"text/template"
 
-	"github.com/ettoretoma/Nomad-coin-course/blockchain"
+	"github.com/ettoretoma/Nomad-coin-course/utils"
 )
 
-const (
-	port        string = ":4000"
-	templateDir string = "templates/"
-)
+const port string = ":4000"
 
-var templates *template.Template
-
-type homeData struct {
-	PageTitle string
-	Blocks    []*blockchain.Block
+type URLdescriptions struct {
+	URL         string
+	Method      string
+	Description string
 }
 
-func home(rw http.ResponseWriter, r *http.Request) {
-	data := homeData{"Home", blockchain.GetBlockchain().AllBlocks()}
-	templates.ExecuteTemplate(rw, "home", data)
-}
-
-func add(rw http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		templates.ExecuteTemplate(rw, "add", nil)
-	case "POST":
-		r.ParseForm()
-		data := r.Form.Get("blockData")
-		blockchain.GetBlockchain().AddBlock(data)
-		http.Redirect(rw, r, "/", http.StatusPermanentRedirect)
-
+func documentation(rw http.ResponseWriter, r *http.Request) {
+	data := []URLdescriptions{
+		{
+			URL:         "/",
+			Method:      "GET",
+			Description: "See documentation",
+		},
 	}
+	b, err := json.Marshal(data)
+	utils.HandleError(err)
+	fmt.Println(b)
 }
 
 func main() {
-	templates = template.Must(template.ParseGlob(templateDir + "pages/*.gohtml"))
-	templates = template.Must(templates.ParseGlob(templateDir + "partials/*.gohtml"))
-	http.HandleFunc("/", home)
-	http.HandleFunc("/add", add)
-	fmt.Printf("Listening on http://localhost%s\n", port)
+	http.HandleFunc("/", documentation)
+	fmt.Printf("Listing on port http://localhost%s", port)
 	log.Fatal(http.ListenAndServe(port, nil))
 }
