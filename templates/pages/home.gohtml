@@ -1,15 +1,15 @@
 {{define "home"}}
 <!DOCTYPE html>
 <html lang="en">
-  {{template "head" .PageTitle}}
+  {{template "head"}}
   <body>
-    {{template "header" .PageTitle}}
+    {{template "header"}}
     <main>
     {{range .Blocks}}
-    {{template "block" .}}
+      {{template "block" .}}
     {{end}}
     </main>
-    {{template "footer"}}
+  {{template "footer"}}
   </body>
 </html>
 {{end}}

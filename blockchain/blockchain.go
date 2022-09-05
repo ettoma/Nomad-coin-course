@@ -19,7 +19,7 @@ type blockchain struct {
 var b *blockchain
 var once sync.Once
 
-func getPreviousHash() string {
+func getLastHash() string {
 	totalBlocks := len(GetBlockchain().blocks)
 	if totalBlocks == 0 {
 		return ""
@@ -27,26 +27,22 @@ func getPreviousHash() string {
 	return GetBlockchain().blocks[totalBlocks-1].Hash
 }
 
-func (b *Block) calculateHash() {
-	hash := sha256.Sum256([]byte(b.Data + b.PrevHash))
-	b.Hash = fmt.Sprintf("%x", hash)
-}
-
-func createBlock(data string) *Block {
-	newBlock := Block{data, "", getPreviousHash()}
-	newBlock.calculateHash()
+func createBlock(Data string) *Block {
+	newBlock := Block{Data, "", getLastHash()}
+	Hash := sha256.Sum256([]byte(newBlock.Data + newBlock.PrevHash))
+	newBlock.Hash = fmt.Sprintf("%x", Hash)
 	return &newBlock
 }
 
-func (b *blockchain) AddBlock(data string) {
-	b.blocks = append(b.blocks, createBlock(data))
+func (b *blockchain) AddBlock(Data string) {
+	b.blocks = append(b.blocks, createBlock(Data))
 }
 
 func GetBlockchain() *blockchain {
 	if b == nil {
 		once.Do(func() {
 			b = &blockchain{}
-			b.AddBlock("Genesis data")
+			b.AddBlock("Genesis Data")
 		})
 	}
 	return b

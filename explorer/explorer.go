@@ -2,17 +2,18 @@ package explorer
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
-	"text/template"
 
 	"github.com/ettoretoma/Nomad-coin-course/blockchain"
 )
 
 const (
-	port        string = ":4000"
-	templateDir string = "explorer/templates/"
+	templateDir string = "templates/"
 )
+
+var templates *template.Template
 
 type homeData struct {
 	PageTitle string
@@ -26,6 +27,7 @@ func home(rw http.ResponseWriter, r *http.Request) {
 
 func add(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+
 	case "GET":
 		templates.ExecuteTemplate(rw, "add", nil)
 	case "POST":
@@ -33,17 +35,16 @@ func add(rw http.ResponseWriter, r *http.Request) {
 		data := r.Form.Get("blockData")
 		blockchain.GetBlockchain().AddBlock(data)
 		http.Redirect(rw, r, "/", http.StatusPermanentRedirect)
-
 	}
+
 }
 
-var templates *template.Template
-
-func Start() {
+func Start(port int) {
+	handler := http.NewServeMux()
 	templates = template.Must(template.ParseGlob(templateDir + "pages/*.gohtml"))
 	templates = template.Must(templates.ParseGlob(templateDir + "partials/*.gohtml"))
-	http.HandleFunc("/", home)
-	http.HandleFunc("/add", add)
-	fmt.Printf("Listening on http://localhost%s\n", port)
-	log.Fatal(http.ListenAndServe(port, nil))
+	handler.HandleFunc("/", home)
+	handler.HandleFunc("/add", add)
+	fmt.Printf("Listening on http://localhost:%d\n", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), handler))
 }
