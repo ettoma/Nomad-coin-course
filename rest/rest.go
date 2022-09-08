@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/ettoretoma/Nomad-coin-course/blockchain"
 	"github.com/ettoretoma/Nomad-coin-course/utils"
+	"github.com/gorilla/mux"
 )
 
 var PORT string
@@ -65,6 +67,10 @@ type AddBlockBody struct {
 	Message string
 }
 
+type errorResponse struct {
+	ErrorMessage string `json:"errorMessage"`
+}
+
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
@@ -83,11 +89,38 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 
 }
 
+func block(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	height, err := strconv.Atoi(vars["height"])
+	utils.HandleErr(err)
+
+	block, err := blockchain.GetBlockchain().GetBlock(height)
+	encoder := json.NewEncoder(rw)
+
+	if err == blockchain.ErrNotFound {
+		encoder.Encode(errorResponse{fmt.Sprint(err)})
+	} else {
+
+		json.NewEncoder(rw).Encode(block)
+	}
+
+}
+
+func jsonContentTypeMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Add("Content-Type", "application/json")
+		next.ServeHTTP(rw, r)
+	})
+}
+
 func Start(port int) {
-	handler := http.NewServeMux()
+	router := mux.NewRouter()
 	PORT = fmt.Sprintf(":%d", port)
 	fmt.Println("Listening on http://localhost" + PORT)
-	handler.HandleFunc("/blocks", blocks)
-	handler.HandleFunc("/", documentation)
-	log.Fatal(http.ListenAndServe(PORT, handler))
+
+	router.Use(jsonContentTypeMiddleware)
+	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
+	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
+	router.HandleFunc("/", documentation).Methods("GET")
+	log.Fatal(http.ListenAndServe(PORT, router))
 }
