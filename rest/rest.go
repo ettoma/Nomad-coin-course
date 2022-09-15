@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/ettoretoma/Nomad-coin-course/blockchain"
 	"github.com/ettoretoma/Nomad-coin-course/utils"
@@ -74,14 +73,14 @@ type errorResponse struct {
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		data := blockchain.GetBlockchain().AllBlocks()
+		data := blockchain.Blockchain().Blocks()
 		rw.Header().Add("Content-Type", "application/json")
 		json.NewEncoder(rw).Encode(data)
 
 	case "POST":
 		var addBlockBody AddBlockBody
 		utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody))
-		blockchain.GetBlockchain().AddBlock(addBlockBody.Message)
+		blockchain.Blockchain().AddBlock(addBlockBody.Message)
 		rw.WriteHeader(http.StatusCreated)
 		rw.Write([]byte(fmt.Sprintf("well done jedi, your data is: %s", addBlockBody.Message)))
 
@@ -91,10 +90,9 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 
 func block(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	height, err := strconv.Atoi(vars["height"])
-	utils.HandleErr(err)
+	hash := vars["hash"]
 
-	block, err := blockchain.GetBlockchain().GetBlock(height)
+	block, err := blockchain.FindBlock(hash)
 	encoder := json.NewEncoder(rw)
 
 	if err == blockchain.ErrNotFound {
@@ -120,7 +118,7 @@ func Start(port int) {
 
 	router.Use(jsonContentTypeMiddleware)
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
-	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
+	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
 	router.HandleFunc("/", documentation).Methods("GET")
 	log.Fatal(http.ListenAndServe(PORT, router))
 }
