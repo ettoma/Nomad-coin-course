@@ -3,7 +3,7 @@ package main
 import "github.com/ettoretoma/Nomad-coin-course/wallet"
 
 func main() {
-	wallet.Start()
+	wallet.Wallet()
 }
 
 // package main
