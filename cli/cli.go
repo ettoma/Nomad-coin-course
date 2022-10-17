@@ -11,7 +11,7 @@ import (
 )
 
 func usage() {
-	fmt.Printf("Welcome to 노마드 코인\n\n")
+	fmt.Printf("Welcome to Ettore 코인\n\n")
 	fmt.Printf("Please use the following flags:\n\n")
 	fmt.Printf("-port:		Set the PORT of the server\n")
 	fmt.Printf("-mode:		Choose between 'html' and 'rest'\n\n")

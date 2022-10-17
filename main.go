@@ -1,9 +1,14 @@
 package main
 
-import "github.com/ettoretoma/Nomad-coin-course/wallet"
+import (
+	"github.com/ettoretoma/Nomad-coin-course/cli"
+	"github.com/ettoretoma/Nomad-coin-course/db"
+)
 
 func main() {
-	wallet.Wallet()
+	// wallet.Wallet()
+	defer db.Close()
+	cli.Start()
 }
 
 // package main

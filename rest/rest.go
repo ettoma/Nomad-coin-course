@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/ettoretoma/Nomad-coin-course/blockchain"
+	"github.com/ettoretoma/Nomad-coin-course/p2p"
 	"github.com/ettoretoma/Nomad-coin-course/utils"
 	"github.com/gorilla/mux"
 )
@@ -158,19 +159,26 @@ func jsonContentTypeMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(rw, r)
 	})
 }
+func loggerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		fmt.Println(r.URL)
+		next.ServeHTTP(rw, r)
+	})
+}
 
 func Start(port int) {
 	router := mux.NewRouter()
 	PORT = fmt.Sprintf(":%d", port)
 	fmt.Println("Listening on http://localhost" + PORT)
 
-	router.Use(jsonContentTypeMiddleware)
+	router.Use(jsonContentTypeMiddleware, loggerMiddleware)
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
 	router.HandleFunc("/stats", stats).Methods("GET")
 	router.HandleFunc("/balance/{address}", balance).Methods("GET")
 	router.HandleFunc("/mempool", mempool).Methods("GET")
 	router.HandleFunc("/transaction", transactions).Methods("POST")
+	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
 	router.HandleFunc("/", documentation).Methods("GET")
 	log.Fatal(http.ListenAndServe(PORT, router))
 }
